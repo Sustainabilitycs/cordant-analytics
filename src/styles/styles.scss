@@ -1,0 +1,283 @@
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&display=swap');
+
+// ── DARK THEME (using built-in Material palettes) ────────────────
+$dark-primary: mat.define-palette(mat.$amber-palette, 600, 400, 800);
+$dark-accent:  mat.define-palette(mat.$blue-palette, 500, 300, 700);
+$dark-warn:    mat.define-palette(mat.$red-palette, 600);
+
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary:  $dark-primary,
+    accent:   $dark-accent,
+    warn:     $dark-warn
+  ),
+  typography: mat.define-typography-config(
+    $font-family: "'IBM Plex Sans', sans-serif"
+  ),
+  density: -1
+));
+
+// ── LIGHT THEME ─────────────────────────────────────────────────
+$light-primary: mat.define-palette(mat.$amber-palette, 800, 600, 900);
+$light-accent:  mat.define-palette(mat.$blue-palette, 600, 400, 800);
+$light-warn:    mat.define-palette(mat.$red-palette, 700);
+
+$light-theme: mat.define-light-theme((
+  color: (
+    primary:  $light-primary,
+    accent:   $light-accent,
+    warn:     $light-warn
+  ),
+  typography: mat.define-typography-config(
+    $font-family: "'IBM Plex Sans', sans-serif"
+  ),
+  density: -1
+));
+
+// ── EMIT MATERIAL STYLES ─────────────────────────────────────────
+@include mat.core();
+@include mat.all-component-themes($dark-theme);
+
+.light-theme {
+  @include mat.all-component-colors($light-theme);
+}
+
+// ── CORDANT CSS VARIABLES — DARK ────────────────────────────────
+:root {
+  --bg:      #0a0c0f;
+  --bg2:     #0f1217;
+  --card:    #131720;
+  --el:      #1a2030;
+  --border:  #1e2535;
+  --bright:  #2a3550;
+  --amber:   #f5a623;
+  --amberD:  #c47e10;
+  --amberG:  rgba(245,166,35,.12);
+  --green:   #2ecc71;
+  --greenD:  #1a7a44;
+  --red:     #e74c3c;
+  --redD:    #7a1a14;
+  --blue:    #3498db;
+  --blueD:   #1a4a7a;
+  --cyan:    #1abc9c;
+  --purple:  #9b59b6;
+  --t1:      #e8eaf0;
+  --t2:      #8a96b0;
+  --t3:      #4a5570;
+  --shadow:  0 4px 20px rgba(0,0,0,.4);
+  --radius:  4px;
+  --transition: all 0.2s ease;
+}
+
+// ── CORDANT CSS VARIABLES — LIGHT ───────────────────────────────
+.light-theme {
+  --bg:      #f0f2f7;
+  --bg2:     #e4e8f0;
+  --card:    #ffffff;
+  --el:      #dde3ef;
+  --border:  #c8d0e0;
+  --bright:  #b0bcd4;
+  --amber:   #d4880a;
+  --amberD:  #a86508;
+  --amberG:  rgba(212,136,10,.10);
+  --green:   #1a9e52;
+  --greenD:  #0d6b38;
+  --red:     #c0392b;
+  --redD:    #8e2217;
+  --blue:    #1f78c1;
+  --blueD:   #145a96;
+  --cyan:    #0e9a7e;
+  --purple:  #7d3c98;
+  --t1:      #111827;
+  --t2:      #374151;
+  --t3:      #6b7280;
+  --shadow:  0 4px 20px rgba(0,0,0,.12);
+}
+
+// ── GLOBAL RESETS ────────────────────────────────────────────────
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background 0.25s, color 0.25s;
+}
+
+// ── TYPOGRAPHY ───────────────────────────────────────────────────
+.font-mono  { font-family: 'IBM Plex Mono', monospace; }
+.font-brand { font-family: 'Rajdhani', sans-serif; }
+
+// ── SCROLLBAR ────────────────────────────────────────────────────
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bright); border-radius: 2px; }
+
+// ── MATERIAL OVERRIDES ───────────────────────────────────────────
+.mat-mdc-card {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+
+.mat-mdc-form-field {
+  .mdc-text-field {
+    background: var(--el) !important;
+  }
+}
+
+.mat-mdc-select-panel {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.mat-mdc-option {
+  color: var(--t1) !important;
+  &:hover { background: var(--el) !important; }
+  &.mdc-list-item--selected { background: var(--amberG) !important; }
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: var(--el);
+  --mdc-snackbar-supporting-text-color: var(--t1);
+}
+
+.mat-mdc-chip {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+}
+
+.mat-mdc-tab-label-container {
+  border-bottom: 1px solid var(--border);
+}
+
+// ── GRID UTILITIES ────────────────────────────────────────────────
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+
+@media (max-width: 1100px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 800px) {
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+}
+
+// ── BADGE UTILITIES ───────────────────────────────────────────────
+.badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; padding: 2px 6px; border-radius: 2px;
+  border: 1px solid; white-space: nowrap; font-weight: 500;
+  &.ok      { color: var(--green);  border-color: var(--greenD); background: rgba(46,204,113,.08); }
+  &.warn    { color: var(--amber);  border-color: var(--amberD); background: var(--amberG); }
+  &.crit    { color: var(--red);    border-color: var(--redD);   background: rgba(231,76,60,.08); }
+  &.info    { color: var(--blue);   border-color: var(--blueD);  background: rgba(52,152,219,.08); }
+  &.neutral { color: var(--t3);     border-color: var(--bright); background: var(--el); }
+}
+
+.tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; padding: 1px 6px; border-radius: 2px;
+  border: 1px solid; white-space: nowrap;
+  &.PU { color: var(--blue);   border-color: var(--blueD);   background: rgba(52,152,219,.12); }
+  &.MO { color: var(--red);    border-color: var(--redD);    background: rgba(231,76,60,.10); }
+  &.TR { color: var(--green);  border-color: var(--greenD);  background: rgba(46,204,113,.08); }
+  &.SW { color: var(--amber);  border-color: var(--amberD);  background: var(--amberG); }
+  &.BR { color: var(--purple); border-color: rgba(155,89,182,.5); background: rgba(155,89,182,.10); }
+  &.VA { color: var(--cyan);   border-color: rgba(26,188,156,.4); background: rgba(26,188,156,.08); }
+}
+
+// ── CRIT PIPS ─────────────────────────────────────────────────────
+.crit-pips {
+  display: flex; gap: 3px; align-items: center;
+  .pip {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+    &.active { background: var(--pip-color, var(--amber)); }
+  }
+}
+
+// ── SECTION LABEL ────────────────────────────────────────────────
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--t3); margin-bottom: 6px;
+}
+
+// ── FILTER CHIP ───────────────────────────────────────────────────
+.filter-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; padding: 3px 10px; border-radius: 2px;
+  cursor: pointer; border: 1px solid var(--bright);
+  background: var(--el); color: var(--t3);
+  transition: var(--transition);
+  &:hover  { border-color: var(--amber); color: var(--amber); }
+  &.active { background: var(--amberG); border-color: var(--amber); color: var(--amber); font-weight: 600; }
+}
+
+// ── ACTIVE FILTER STRIP ───────────────────────────────────────────
+.filter-strip {
+  padding: 5px 12px;
+  background: var(--amberG);
+  border: 1px solid var(--amberD);
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--amber);
+  letter-spacing: .4px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+// ── PAGE ANIMATIONS ───────────────────────────────────────────────
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.25s ease forwards;
+}
+
+// ── DATA TABLE OVERRIDE ───────────────────────────────────────────
+.mat-mdc-table {
+  background: transparent !important;
+  width: 100%;
+  .mat-mdc-header-row { background: var(--el) !important; }
+  .mat-mdc-header-cell {
+    color: var(--t3) !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 9px !important; letter-spacing: 1px;
+    text-transform: uppercase; border-bottom-color: var(--border) !important;
+  }
+  .mat-mdc-row {
+    transition: background 0.1s;
+    border-bottom-color: rgba(30,37,53,.4) !important;
+    &:hover .mat-mdc-cell { background: var(--el) !important; }
+  }
+  .mat-mdc-cell {
+    color: var(--t1) !important;
+    border-bottom-color: rgba(30,37,53,.4) !important;
+    font-size: 11px;
+  }
+}
+
+.mat-mdc-paginator {
+  background: transparent !important;
+  color: var(--t2) !important;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+}

@@ -1,0 +1,296 @@
+<ce-page-header
+  title="Maintenance Dashboard"
+  [subtitle]="'CORDANT ENERGY · YTD 2024 · ' + filteredAssets().length + ' ASSETS · ' + filteredWOs().length + ' WOs'"
+  highlight="CROSS-FILTER ENABLED"
+  (exportXlsx)="onExportXlsx()"
+  (exportPdf)="onExportPdf()">
+  <button mat-stroked-button *ngIf="f.hasFilters()" class="reset-btn" (click)="reset()">
+    <mat-icon>close</mat-icon> Reset Filters
+  </button>
+</ce-page-header>
+
+<!-- Active filter strip -->
+<div class="filter-strip" *ngIf="f.hasFilters()">
+  <span>⊡ ACTIVE FILTERS: {{ f.filterLabel() }}</span>
+  <button mat-button class="strip-clear" (click)="reset()">✕ clear</button>
+</div>
+
+<!-- KPI Row -->
+<div class="grid-auto">
+  <ce-kpi-card
+    title="SCHEDULE COMPLIANCE"
+    value="87.4" unit="%"
+    delta="▲ 3.2% vs last month" [deltaGood]="true"
+    subtitle="PM completion rate"
+    accent="amber">
+  </ce-kpi-card>
+  <ce-kpi-card
+    title="MTBF"
+    value="312" unit="days"
+    delta="▲ 18 days vs Q3" [deltaGood]="true"
+    subtitle="Mean time between failures"
+    accent="green">
+  </ce-kpi-card>
+  <ce-kpi-card
+    title="MTTR"
+    value="4.2" unit="hrs"
+    delta="▼ 0.8h vs last month" [deltaGood]="true"
+    subtitle="Mean time to repair"
+    accent="blue">
+  </ce-kpi-card>
+  <ce-kpi-card
+    title="BACKLOG"
+    value="84" unit="hrs"
+    delta="▲ 12h this week" [deltaGood]="false"
+    subtitle="Open WO backlog"
+    accent="red">
+  </ce-kpi-card>
+  <ce-kpi-card
+    title="CM RATIO"
+    [value]="kpiCmRatio()" unit="%"
+    delta="Click to filter CM" [deltaGood]="true"
+    subtitle="Corrective vs total"
+    accent="neutral"
+    (click)="toggleType('CM')">
+  </ce-kpi-card>
+  <ce-kpi-card
+    title="OVERDUE WOs"
+    [value]="kpiOverdue()"
+    delta="Require attention" [deltaGood]="false"
+    subtitle="Past planned date"
+    accent="red">
+  </ce-kpi-card>
+</div>
+
+<!-- 3-column chart row -->
+<div class="chart-row">
+
+  <!-- WO by Type -->
+  <mat-card class="chart-card">
+    <div class="card-header">
+      <span class="card-title">WORK ORDERS BY TYPE</span>
+      <span class="card-hint">Click bar to filter</span>
+    </div>
+    <div class="bar-chart-wrap">
+      <div class="bar-chart">
+        <div class="bar-col"
+             *ngFor="let type of WO_TYPES"
+             [class.active]="f.activeType() === type"
+             [class.faded]="f.activeType() !== null && f.activeType() !== type"
+             (click)="toggleType(type)"
+             [matTooltip]="WO_FULL_NAMES[type]">
+          <div class="bar-value" [style.color]="WO_COLORS[type]">
+            {{ woTypeCounts()[type] }}
+          </div>
+          <div class="bar-fill"
+               [style.height.px]="barHeight(woTypeCounts()[type], maxWoCount(), 110)"
+               [style.background]="WO_COLORS[type]"
+               [style.opacity]="f.activeType() === type ? 1 : f.activeType() ? 0.18 : 0.75">
+          </div>
+          <div class="bar-label">
+            <div class="bar-code">{{ type === 'Inspection' ? 'Insp.' : type === 'Modification' ? 'Modif.' : type }}</div>
+            <div class="bar-name">{{ WO_FULL_NAMES[type] }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Summary list -->
+    <div class="wo-summary">
+      <div class="wo-sum-row"
+           *ngFor="let type of WO_TYPES"
+           [class.active]="f.activeType() === type"
+           [class.faded]="f.activeType() !== null && f.activeType() !== type"
+           (click)="toggleType(type)">
+        <span class="wo-sum-name" [style.color]="f.activeType() !== null && f.activeType() !== type ? 'var(--t3)' : WO_COLORS[type]">
+          {{ WO_FULL_NAMES[type] }}
+        </span>
+        <span class="wo-sum-count">{{ woTypeCounts()[type].toLocaleString() }}</span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Criticality Distribution -->
+  <mat-card class="chart-card">
+    <div class="card-header">
+      <span class="card-title">CRITICALITY</span>
+      <span class="card-hint">Click to filter</span>
+    </div>
+    <div class="crit-list">
+      <div class="crit-row"
+           *ngFor="let level of CRIT_LEVELS"
+           [class.active]="f.activeCrit() === level"
+           [class.faded]="f.activeCrit() !== null && f.activeCrit() !== level"
+           (click)="toggleCrit(level)"
+           [style.border-color]="f.activeCrit() === level ? CRIT_COLORS[level] : 'transparent'"
+           [style.background]="f.activeCrit() === level ? CRIT_COLORS[level] + '18' : 'transparent'">
+        <div class="crit-top">
+          <span class="crit-label" [style.color]="f.activeCrit() !== null && f.activeCrit() !== level ? 'var(--border)' : CRIT_COLORS[level]">
+            {{ f.activeCrit() === level ? '▸ ' : '' }}CRIT {{ level }}
+          </span>
+          <span class="crit-count" [style.color]="f.activeCrit() !== null && f.activeCrit() !== level ? 'var(--border)' : 'var(--t1)'">
+            <strong>{{ critCounts()[level] }}</strong>
+            <span class="crit-total"> /{{ critAllCounts()[level] }}</span>
+          </span>
+        </div>
+        <div class="progress-bg">
+          <div class="progress-fill"
+               [style.width.%]="critAllCounts()[level] ? critCounts()[level] / critAllCounts()[level] * 100 : 0"
+               [style.background]="CRIT_COLORS[level]"
+               [style.opacity]="f.activeCrit() !== null && f.activeCrit() !== level ? 0.15 : 0.85">
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Equipment Class Coverage -->
+  <mat-card class="chart-card">
+    <div class="card-header">
+      <span class="card-title">EQUIPMENT CLASS</span>
+      <span class="card-hint">Click to filter</span>
+    </div>
+    <div class="class-list">
+      <div class="class-row"
+           *ngFor="let cls of CLASS_KEYS"
+           [class.active]="f.activeClass() === cls"
+           [class.faded]="f.activeClass() !== null && f.activeClass() !== cls"
+           (click)="toggleClass(cls)"
+           [style.border-color]="f.activeClass() === cls ? CLASS_COLORS[cls] : 'transparent'"
+           [style.background]="f.activeClass() === cls ? CLASS_COLORS[cls] + '18' : 'transparent'">
+        <div class="class-top">
+          <div class="class-left">
+            <span class="tag" [ngClass]="cls"
+                  [style.opacity]="f.activeClass() !== null && f.activeClass() !== cls ? 0.3 : 1">
+              {{ cls }}
+            </span>
+            <span class="class-name"
+                  [style.color]="f.activeClass() !== null && f.activeClass() !== cls ? 'var(--border)' : 'var(--t2)'">
+              {{ CLASS_NAMES[cls] }}
+            </span>
+          </div>
+          <span class="class-count"
+                [style.color]="f.activeClass() !== null && f.activeClass() !== cls ? 'var(--border)' : CLASS_COLORS[cls]">
+            {{ classCounts()[cls] || 0 }}
+          </span>
+        </div>
+        <div class="progress-bg">
+          <div class="progress-fill"
+               [style.width.%]="(classCounts()[cls] || 0) / CLASS_TOTALS[cls] * 100"
+               [style.background]="CLASS_COLORS[cls]"
+               [style.opacity]="f.activeClass() !== null && f.activeClass() !== cls ? 0.15 : 0.85">
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+</div>
+
+<!-- Work Orders Table — full width, reacts to all filters -->
+<mat-card class="table-card">
+  <div class="card-header">
+    <span class="card-title">
+      WORK ORDERS{{ f.hasFilters() ? ' — FILTERED' : '' }}
+    </span>
+    <div class="table-header-right">
+      <span class="record-count">{{ filteredWOs().length.toLocaleString() }} records</span>
+      <a mat-button routerLink="/work-orders" class="view-all-btn">View full →</a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table mat-table [dataSource]="pagedWOs()">
+
+      <ng-container matColumnDef="wo_number">
+        <th mat-header-cell *matHeaderCellDef>WO #</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="mono amber">{{ w.wo_number }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="asset_id">
+        <th mat-header-cell *matHeaderCellDef>ASSET</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="mono">{{ w.asset_id }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>DESCRIPTION</th>
+        <td mat-cell *matCellDef="let w" [matTooltip]="getAsset(w.asset_id)?.description || ''">
+          <span class="desc-cell">{{ shortDesc(getAsset(w.asset_id)) }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="class">
+        <th mat-header-cell *matHeaderCellDef>CLS</th>
+        <td mat-cell *matCellDef="let w">
+          <span *ngIf="getAsset(w.asset_id) as a" class="tag" [ngClass]="a.class">{{ a.class }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="wo_type">
+        <th mat-header-cell *matHeaderCellDef>TYPE</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="badge info">{{ w.wo_type }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="priority">
+        <th mat-header-cell *matHeaderCellDef>PRIORITY</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="badge" [ngClass]="priorityClass(w.priority)">{{ w.priority }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="planned_date">
+        <th mat-header-cell *matHeaderCellDef>DATE</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="mono muted">{{ w.planned_date }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>STATUS</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="badge" [ngClass]="statusClass(w.status)">{{ w.status }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="technician">
+        <th mat-header-cell *matHeaderCellDef>TECH</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="tech-name">{{ w.technician_name.split(' ').slice(0,2).join(' ') }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cost">
+        <th mat-header-cell *matHeaderCellDef>COST</th>
+        <td mat-cell *matCellDef="let w">
+          <span class="mono green">{{ formatCost(w.cost_usd) }}</span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Pager -->
+  <div class="pager">
+    <span class="pager-info">
+      {{ woPage() * 12 + 1 }}–{{ Math.min((woPage() + 1) * 12, filteredWOs().length) }}
+      of {{ filteredWOs().length.toLocaleString() }}
+    </span>
+    <div class="pager-btns">
+      <button mat-stroked-button [disabled]="woPage() === 0" (click)="prevPage()">← Prev</button>
+      <button mat-stroked-button [disabled]="woPage() >= totalWoPages() - 1" (click)="nextPage()">Next →</button>
+    </div>
+  </div>
+</mat-card>
+
+<!-- Footer -->
+<div class="page-footer">
+  <span>CORDANT ENERGY · MAINTENANCE STRATEGY PLATFORM · v2.0</span>
+  <span>500 ASSETS · 22 SUB-CLASSES · RCM BASED · CROSS-FILTER</span>
+</div>

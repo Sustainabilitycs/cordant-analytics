@@ -1,4 +1,4 @@
-name: Deploy EAS to GitHub Pages
+name: Deploy cordant to GitHub Pages
 
 on:
   push:

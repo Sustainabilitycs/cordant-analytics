@@ -41,9 +41,12 @@ const ALL_CLASSES: EquipmentClass[] = ['PU','MO','TR','SW','BR','VA'];
       <ce-kpi-card title="PEAK ASSET" [value]="kpi().peakVal" unit="kWh" [subtitle]="kpi().peakId" accent="neutral"></ce-kpi-card>
       <ce-kpi-card title="EFFICIENCY" [value]="kpi().eff" [delta]="kpi().effLabel" [deltaGood]="parseFloat(kpi().eff)<1" subtitle="Normalised score vs baseline" accent="green"></ce-kpi-card>
     </div>
-    <mat-card style="padding:14px;overflow:hidden">
-      <div class="ch"><span class="ct">ENERGY CONSUMPTION PER CLASS — TIME SERIES</span><span class="hint">Jan–Dec 2024 · kWh equivalent</span></div>
-      <div style="width:100%;overflow:hidden" [innerHTML]="timeSeriesSvg()"></div>
+    <mat-card style="padding:14px">
+      <div class="ch">
+        <span class="ct">ENERGY CONSUMPTION — CLASS × MONTH HEATMAP</span>
+        <span class="hint">Darker cell = higher consumption · kWh equivalent · Jan–Dec 2024</span>
+      </div>
+      <div style="overflow-x:auto" [innerHTML]="heatmapHtml()"></div>
     </mat-card>
     <div class="four-col">
       <mat-card style="padding:14px">
@@ -87,10 +90,7 @@ const ALL_CLASSES: EquipmentClass[] = ['PU','MO','TR','SW','BR','VA'];
         </div>
       </mat-card>
     </div>
-    <mat-card style="padding:14px">
-      <div class="ch"><span class="ct">CONSUMPTION HEATMAP — CLASS × MONTH</span><span class="hint">Darker = higher consumption</span></div>
-      <div style="overflow-x:auto" [innerHTML]="heatmapHtml()"></div>
-    </mat-card>
+
     <div class="grid-2">
       <mat-card style="padding:14px">
         <div class="ch"><span class="ct">CONSUMPTION DISTRIBUTION BY ASSET</span><span class="hint">kWh/yr frequency</span></div>
@@ -384,29 +384,84 @@ export class EmsOverviewComponent {
     for (const cls of hmCls) { hm[cls] = {}; for (const m of MONTHS) hm[cls][m] = 0; }
     for (const r of this.dataS.energyMonthly) {
       if (activeCls !== 'ALL' && r.class !== activeCls) continue;
-      if (hm[r.class]?.[r.month] !== undefined) hm[r.class][r.month] += r.electricity_kwh + r.gas_kwh + r.heating_kwh + r.water_m3*10 + r.coolant_l*.5 + r.motor_fuel_l*2;
+      if (hm[r.class]?.[r.month] !== undefined)
+        hm[r.class][r.month] += r.electricity_kwh + r.gas_kwh + r.heating_kwh + r.water_m3*10 + r.coolant_l*.5 + r.motor_fuel_l*2;
     }
     const allV  = Object.values(hm).flatMap(row => Object.values(row));
     const maxHM = Math.max(...allV, 1);
-    const fmt   = (v: number) => v >= 1e3 ? Math.round(v/1e3)+'k' : Math.round(v)+'';
-    let t = `<table style="border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:8px"><tr><th style="width:80px;padding:3px 6px;color:var(--t3);text-align:left;font-weight:400"></th>`;
-    for (const m of MONTHS) t += `<th style="width:52px;padding:3px 2px;color:var(--t3);text-align:center;font-weight:400">${m.substring(5)}</th>`;
-    t += `</tr>`;
+    const fmt   = (v: number) => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? Math.round(v/1e3)+'k' : Math.round(v)+'';
+    const ML    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    let t = `<div style="overflow-x:auto;padding-bottom:4px">
+<table style="border-collapse:collapse;width:100%;font-family:'IBM Plex Mono',monospace">
+<colgroup><col style="width:110px">${MONTHS.map(()=>'<col style="min-width:60px">').join('')}</colgroup>
+<thead><tr>
+  <th style="padding:6px 10px;text-align:left;font-size:8px;color:var(--t3);font-weight:500;border-bottom:1px solid var(--border)">CLASS</th>
+  ${ML.map(m=>`<th style="padding:6px 4px;text-align:center;font-size:8px;color:var(--t3);font-weight:500;border-bottom:1px solid var(--border)">${m}</th>`).join('')}
+  <th style="padding:6px 8px;text-align:right;font-size:8px;color:var(--t3);font-weight:500;border-bottom:1px solid var(--border)">TOTAL</th>
+</tr></thead>
+<tbody>`;
+
     for (const cls of hmCls) {
       const col  = CC[cls] ?? '#888';
       const name = CN[cls] ?? cls;
-      t += `<tr><td style="padding:3px 6px;color:${col};font-weight:500;white-space:nowrap">${name}</td>`;
+      const rowTotal = Object.values(hm[cls] ?? {}).reduce((a,b)=>a+b,0);
+      t += `<tr>`;
+      t += `<td style="padding:6px 10px;white-space:nowrap;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
+          <span style="font-size:10px;color:${col};font-weight:600">${name}</span>
+        </div>
+      </td>`;
       for (const m of MONTHS) {
-        const v       = hm[cls]?.[m] ?? 0;
-        const opacity = (0.08 + (v/maxHM)*0.82).toFixed(2);
-        const txtOp   = v/maxHM > 0.4 ? 1 : 0;
-        t += `<td style="padding:2px"><div style="width:48px;height:26px;border-radius:2px;background:${col};opacity:${opacity};display:flex;align-items:center;justify-content:center" title="${name} · ${m} · ${fmt(v)} kWh"><span style="font-size:7.5px;color:var(--card);font-weight:500;opacity:${txtOp}">${fmt(v)}</span></div></td>`;
+        const v         = hm[cls]?.[m] ?? 0;
+        const intensity = v / maxHM;
+        const opacity   = (0.06 + intensity * 0.88).toFixed(2);
+        const txtColor  = intensity > 0.45 ? 'var(--card)' : 'var(--t2)';
+        const txtWeight = intensity > 0.6 ? '600' : '400';
+        t += `<td style="padding:3px 2px;border-bottom:1px solid var(--border)">
+          <div style="height:36px;border-radius:3px;background:${col};opacity:${opacity};
+               display:flex;align-items:center;justify-content:center;cursor:default"
+               title="${name} · ${m} · ${fmt(v)} kWh">
+            <span style="font-size:8px;color:${txtColor};font-weight:${txtWeight};opacity:${intensity>0.12?1:0};letter-spacing:-.2px">${fmt(v)}</span>
+          </div>
+        </td>`;
       }
+      t += `<td style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)">
+        <span style="font-size:9px;font-weight:600;color:${col}">${fmt(rowTotal)}</span>
+      </td>`;
       t += `</tr>`;
     }
-    t += `</table>`;
+
+    // Column totals row
+    t += `<tr><td style="padding:6px 10px;font-size:8px;color:var(--t3);font-weight:500">TOTAL</td>`;
+    let grandTotal = 0;
+    for (const m of MONTHS) {
+      const colTotal = hmCls.reduce((s,cls)=>s+(hm[cls]?.[m]??0),0);
+      grandTotal += colTotal;
+      t += `<td style="padding:4px 2px;text-align:center">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--t3)">${fmt(colTotal)}</span>
+      </td>`;
+    }
+    t += `<td style="padding:6px 8px;text-align:right">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:var(--amber)">${fmt(grandTotal)}</span>
+    </td></tr>`;
+
+    t += `</tbody></table>
+
+<!-- Colour scale legend -->
+<div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--t3)">LOW</span>
+  <div style="display:flex;gap:2px">
+    ${[0.06,0.2,0.35,0.5,0.65,0.8,0.94].map(op=>`<div style="width:22px;height:10px;border-radius:2px;background:var(--amber);opacity:${op}"></div>`).join('')}
+  </div>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--t3)">HIGH</span>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--t3);margin-left:12px">Cell colour = each class colour · Intensity = relative consumption</span>
+</div>
+</div>`;
+
     return this.san.bypassSecurityTrustHtml(t);
-  });
+  })
 
   readonly histogram = computed(() => {
     const aMap: Record<string,number> = {};

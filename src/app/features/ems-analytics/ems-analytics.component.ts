@@ -95,7 +95,7 @@ export class EmsAnalyticsComponent {
     const pn=layout(pCost,PCOLS,30);
     const cn=layout(cCost,CCOLS,295);
     const en=layout(eCost,ECOLS,560);
-    let h=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;min-width:520px;max-height:${H}px;font-family:'IBM Plex Mono',monospace">`;
+    let h=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:100%;font-family:'IBM Plex Mono',monospace">`;
     for(const p of pn) for(const c of cn){const w=Math.max(1,Math.round(Math.min(p.v,c.v)/total*40));const mx=(p.x+NW+c.x)/2;h+=`<path d="M${p.x+NW} ${p.y+p.h/2} C${mx} ${p.y+p.h/2} ${mx} ${c.y+c.h/2} ${c.x} ${c.y+c.h/2}" fill="none" stroke="${p.color}" stroke-width="${w}" opacity=".14"/>`;}
     for(const c of cn) for(const e of en){const w=Math.max(1,Math.round(Math.min(c.v,e.v)/total*35));const mx=(c.x+NW+e.x)/2;h+=`<path d="M${c.x+NW} ${c.y+c.h/2} C${mx} ${c.y+c.h/2} ${mx} ${e.y+e.h/2} ${e.x} ${e.y+e.h/2}" fill="none" stroke="${c.color}" stroke-width="${w}" opacity=".14"/>`;}
     for(const nodes of [pn,cn,en]) for(const n of nodes){h+=`<rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" rx="3" fill="${n.color}" opacity=".18" stroke="${n.color}" stroke-width=".8"/>`;const nm=PNAMES[n.k]||CNAMES[n.k]||ENAMES[n.k]||n.k;h+=`<text x="${n.x+NW/2}" y="${n.y+n.h/2-(n.h>28?5:0)}" text-anchor="middle" dominant-baseline="central" font-size="8" fill="${n.color}" font-weight="500">${nm}</text>`;if(n.h>28)h+=`<text x="${n.x+NW/2}" y="${n.y+n.h/2+9}" text-anchor="middle" dominant-baseline="central" font-size="7" fill="${n.color}" opacity=".75">$${Math.round(n.v/1000)}K</text>`;}

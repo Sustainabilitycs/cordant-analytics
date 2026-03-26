@@ -49,7 +49,7 @@ const ALL_CLASSES: EquipmentClass[] = ['PU','MO','TR','SW','BR','VA'];
       <mat-card style="padding:14px">
         <div class="ch"><span class="ct">TOTAL BY CLASS</span></div>
         <div style="display:flex;flex-direction:column;align-items:center">
-          <div [innerHTML]="pieSvg()"></div>
+          <div style="overflow:hidden;display:flex;justify-content:center" [innerHTML]="pieSvg()"></div>
           <div class="pie-legend">
             <div class="pie-row" *ngFor="let s of pieSlices()">
               <div class="pie-dot" [style.background]="clsColor(s.cls)"></div>
@@ -265,7 +265,7 @@ export class EmsOverviewComponent {
     const slices = this.pieSlices();
     const cx=90, cy=90, R=75, ri=35;
     let ang = -Math.PI/2;
-    let h = '<svg viewBox="0 0 180 180" width="160" height="160" style="display:block;overflow:visible">';
+    let h = '<svg viewBox="0 0 180 180" width="160" height="160" style="display:block">';
     for (const s of slices) {
       const col = CC[s.cls] ?? '#888';
       const a = s.pct/100*2*Math.PI, end = ang+a, la = a > Math.PI ? 1 : 0;
@@ -343,7 +343,7 @@ export class EmsOverviewComponent {
     maxV = maxV*1.1 || 1;
     const xP = (i: number) => P.l + i*step;
     const yP = (v: number) => P.t + CH*(1 - v/maxV);
-    let h = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;font-family:'IBM Plex Mono',monospace;overflow:visible">`;
+    let h = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:100%;font-family:\'IBM Plex Mono\',monospace">`;
     for (let i=0; i<=4; i++) {
       const v=maxV*i/4, y=yP(v);
       const lbl = v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'k':v.toFixed(0);

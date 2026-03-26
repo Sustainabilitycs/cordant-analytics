@@ -131,7 +131,7 @@ export class IntegrationsComponent {
   }
 
   get lineageSvgSafe() { return this.san.bypassSecurityTrustHtml(this.lineageSvg); }
-  readonly lineageSvg = `<svg viewBox="0 0 800 120" width="100%" style="display:block;font-family:'IBM Plex Mono',monospace;min-width:600px">
+  readonly lineageSvg = `<svg viewBox="0 0 800 120" width="100%" style="display:block;max-width:100%;font-family:'IBM Plex Mono',monospace">
     <!-- Source layer -->
     <rect x="10"  y="30" width="90" height="26" rx="3" fill="rgba(52,152,219,.15)" stroke="#3498db" stroke-width=".8"/>
     <text x="55"  y="47" text-anchor="middle" font-size="8" fill="#3498db">SAP PM</text>

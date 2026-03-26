@@ -44,7 +44,7 @@ import { MONTHS, MONTH_LABELS, FLOC_DESCRIPTIONS } from '../../core/models/corda
         <span class="ct">ENERGY CONSUMPTION BY TYPE — 2024</span>
         <span class="hint">Amber = Electricity (left kWh) · Others indexed Jan=100 (right)</span>
       </div>
-      <div #chartWrap style="width:100%;overflow:hidden" [innerHTML]="chartSvg()"></div>
+      <div #chartWrap style="width:100%;overflow:hidden;max-width:100%" [innerHTML]="chartSvg()"></div>
     </mat-card>
 
     <!-- Ranked bars + cost bars -->
@@ -186,7 +186,7 @@ export class EmsConsumptionComponent {
     const xP=(i:number)=>P.l+i*step;
     const yL=(v:number)=>P.t+CH*(1-v/niceE);
     const yR=(v:number)=>P.t+CH*(1-(v-nMin)/(nMax-nMin));
-    let h=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;font-family:'IBM Plex Mono',monospace;overflow:visible">`;
+    let h=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:100%;font-family:\'IBM Plex Mono\',monospace">`;
     for(let i=0;i<=4;i++){const v=niceE*i/4,y=yL(v);const lbl=v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'k':v.toFixed(0);h+=`<line x1="${P.l}" y1="${y.toFixed(1)}" x2="${P.l+CW}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="${i===0?.8:.4}"/>`;h+=`<text x="${P.l-4}" y="${y.toFixed(1)}" text-anchor="end" dominant-baseline="central" font-size="9" fill="var(--t3)">${lbl}</text>`;}
     for(let i=0;i<=4;i++){const v=nMin+(nMax-nMin)*i/4,y=yR(v);h+=`<text x="${P.l+CW+4}" y="${y.toFixed(1)}" dominant-baseline="central" font-size="8" fill="var(--t3)" opacity=".7">${Math.round(v)}</text>`;}
     for(let i=0;i<N;i++) h+=`<text x="${xP(i).toFixed(1)}" y="${P.t+CH+14}" text-anchor="middle" font-size="9" fill="var(--t3)">${MONTH_LABELS[i]}</text>`;

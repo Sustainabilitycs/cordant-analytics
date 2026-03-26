@@ -30,7 +30,7 @@ import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.comp
           <span class="legend green">·· Net-zero</span>
         </div>
       </div>
-      <div style="position:relative;height:150px" [innerHTML]="chartSvgSafe"></div>
+      <div style="position:relative;height:150px;overflow:hidden;max-width:100%" [innerHTML]="chartSvgSafe"></div>
     </mat-card>
     <div class="grid-2">
       <mat-card style="padding:14px">

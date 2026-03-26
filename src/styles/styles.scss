@@ -281,3 +281,15 @@ body {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 9px;
 }
+
+// ── CHART CONTAINERS ─────────────────────────────────────────────
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  svg { max-width: 100% !important; display: block; }
+}
+mat-card {
+  svg { max-width: 100%; display: block; }
+  table { max-width: 100%; }
+}

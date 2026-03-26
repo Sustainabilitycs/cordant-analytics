@@ -336,7 +336,7 @@ export class EmsOverviewComponent {
       if (activeCls !== 'ALL' && r.class !== activeCls) continue;
       if (clsM[r.class]) clsM[r.class][r.month] = (clsM[r.class][r.month] ?? 0) + r.electricity_kwh + r.gas_kwh + r.heating_kwh + r.water_m3*10 + r.coolant_l*.5 + r.motor_fuel_l*2;
     }
-    const W=820, H=190, P={t:24, r:130, b:34, l:60};
+    const W=820, H=110, P={t:14, r:130, b:26, l:60};
     const CW=W-P.l-P.r, CH=H-P.t-P.b, N=12, step=CW/(N-1);
     let maxV = 0;
     for (const cls of classes) for (const m of MONTHS) { const v = clsM[cls]?.[m] ?? 0; if (v > maxV) maxV = v; }

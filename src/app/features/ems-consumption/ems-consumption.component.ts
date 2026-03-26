@@ -168,7 +168,7 @@ export class EmsConsumptionComponent {
 
   readonly chartSvg = computed(()=>{
     const monthly = this.monthlyAgg();
-    const W=800,H=290,P={t:36,r:118,b:42,l:70};
+    const W=800,H=160,P={t:22,r:118,b:32,l:70};
     const CW=W-P.l-P.r,CH=H-P.t-P.b,N=12,step=CW/(N-1);
     const eVals=monthly.map(m=>m.elec);
     const maxE=Math.max(...eVals)*1.1||1;
